@@ -3,12 +3,14 @@ library(utils)
 library(quantmod)
 library(tseries)
 nasdaqstocks=file.choose()
-stocklist=as.character(read.csv(nasdaqstocks, header=F)[,2])
+stocklist=as.character(read.csv(nasdaqstocks, header=FALSE)[,2])
 pairs=combn(stocklist,2)
 numpairs=ncol(pairs)
 
-p1 = Ad(getSymbols(stocklist[1], auto.assign=F))
-p2 = Ad(getSymbols(stocklist[2], auto.assign=F))
+attachSymbols()
+
+start.date = "2010-04-01"
+end.date = "2013-04-01"
 
 profits=rep(NA,numpairs)
 correl=rep(NA,numpairs)
@@ -18,13 +20,15 @@ for (j in 1:numpairs){
   stock1=pairs[1,j]
   stock2=pairs[2,j]
   
-  print(paste("s1:", stock1, "s2:", stock2))
+  #print(paste("s1:", stock1, "s2:", stock2))
   
-  s1=getSymbols(stock1,from ="2010-04-01", to = "2013-04-01", auto.assign=FALSE)
-  s2=getSymbols(stock2,from = "2010-04-01", to = "2013-04-01", auto.assign=FALSE)
-
-  print(paste("loaded s1:", stock1, "s2:", stock2))
-
+  all1 = get(stock1)
+  s1=all1[which(time(all1) >= start.date & time(all1) <= end.date)]
+  all2 = get(stock2)
+  s2=all2[which(time(all2) >= start.date & time(all2) <= end.date)]
+  
+  #print(paste("loaded s1:", stock1, "s2:", stock2))
+  
   p1 = as.numeric(Ad(s1))
   p2 = as.numeric(Ad(s2))
   correl[j]=cor(p1,p2)
@@ -103,10 +107,6 @@ mean(pprofits.high)
 library(utils)
 library(quantmod)
 library(tseries)
-nasdaqstocks=file.choose()
-stocklist=as.character(read.csv(nasdaqstocks, header=F)[,2])
-pairs=combn(stocklist,2)
-numpairs=ncol(pairs)
 
 profits2=rep(NA,numpairs)
 correl2=rep(NA,numpairs)
@@ -115,8 +115,17 @@ for (j in 1:numpairs){
   
   stock1=pairs[1,j]
   stock2=pairs[2,j]
-  s1=getSymbols(stock1,from ="2010-04-01", to = "2013-04-01", auto.assign=FALSE)
-  s2=getSymbols(stock2,from = "2010-04-01", to = "2013-04-01", auto.assign=FALSE)
+  
+  #print(paste("s1:", stock1, "s2:", stock2))
+  
+  all1 = get(stock1)
+  s1=all1[which(time(all1) >= start.date & time(all1) <= end.date)]
+  all2 = get(stock2)
+  s2=all2[which(time(all2) >= start.date & time(all2) <= end.date)]
+  
+  #print(paste("loaded s1:", stock1, "s2:", stock2))
+  
+  
   p1 = as.numeric(Ad(s1))
   p2 = as.numeric(Ad(s2))
   rat=p1/p2
