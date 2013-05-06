@@ -321,16 +321,17 @@ for (j in 1:numpairs){
 o2=order(coint2)
 coint.order2=coint2[o2]
 profits.order2=profits2[o]
-coint.high2=coint.order2[4901:4950]
-profits.high2=profits.order2[4901:4950]
+num.top.ten.percent = round(0.99 * numpairs) + 1
+coint.high2=coint.order[num.top.ten.percent:numpairs]
+profits.high2=profits.order[num.top.ten.percent:numpairs]
 plot(coint.high2,profits.high2)
 mean(profits.high2)
 
 p2=order(correl2)
 correl.order2=correl2[p]
 pprofits.order2=profits2[p]
-correl.high2=correl.order2[4901:4950]
-pprofits.high2=pprofits.order2[4901:4950]
+correl.high=correl.order[num.top.ten.percent:numpairs]
+pprofits.high=pprofits.order[num.top.ten.percent:numpairs]
 plot(correl.high2,pprofits.high2)
 mean(pprofits.high2)
 
