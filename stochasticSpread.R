@@ -1,4 +1,149 @@
-####### Difference Method ########
+##### Caching method with defaults from: http://www.mail-archive.com/r-sig-finance@r-project.org/msg02989/attachSymbolsWithArgs.R #####
+DDB_Yahoo2 <- function(cache.dir=tempdir(), cacheOK=TRUE,
+                       verbose=getOption("verbose"),
+                       from="2007-01-01", 
+                       to=Sys.Date(),
+                       DDB.name="Yahoo") 
+{
+  db <- quantmod:::getSymbolsDB(cache.dir=tempdir(), cacheOK, verbose)
+  db <- db[-grep("_|\\.", db)]
+  structure(list(name=paste("DDB:", DDB.name, sep=""), src="yahoo", from=from, 
+                 to=to, db=db), class="DDB")
+}
+
+
+attachSymbols2 <- function(DB=DDB_Yahoo2(), pos=2, prefix=NULL, postfix=NULL, 
+                           mem.cache=TRUE, file.cache=!mem.cache, 
+                           cache.dir=tempdir(),  ...) {
+  attach(NULL, pos=pos, name=DB[["name"]])
+  rsym <- function(x) x
+  lsym <- function(x) paste(prefix, as.character(x), postfix, sep="")
+  invisible(sapply(DB[["db"]], create.binding2, lsym=lsym, gsrc='yahoo',
+                   mem.cache=mem.cache, file.cache=file.cache,
+                   cache.dir=cache.dir, envir=DB[["name"]],
+                   from=DB[["from"]],
+                   to=DB[["to"]],
+                   ...))
+}
+
+# Verbosity wrapper for getSymbols
+GETSymbols <- function(...) {
+  cat(list(...)[[1L]], "not in memory. fetching....\n") #using partial matching
+  do.call("getSymbols", list(...))
+}
+
+create.binding2 <- function(s, lsym, rsym, gsrc, 
+                            mem.cache=TRUE,
+                            file.cache=!mem.cache, 
+                            cache.dir=tempdir(),
+                            envir, ...) {
+  #if((mem.cache + file.cache) != 1) stop("only mem or file caching supported")
+  # allow both to be set to FALSE, to force no caching
+  if(missing(rsym) || !is.function(rsym)) {
+    rsym <- function(x) x
+  }
+  if(missing(lsym) || !is.function(lsym)) {
+    lsym <- function(x) x
+  }
+  
+  if(file.cache) {
+    f <- function(value) {
+      if(missing(value)) {
+        if(!file.exists(file.path(cache.dir, paste(s,"rda",sep=".")))) {
+          assign(lsym(s), getSymbols(rsym(s), src=gsrc, auto.assign=FALSE, ...))
+          save(list=lsym(s), file=file.path(cache.dir, paste(s,"rda",sep=".")))
+          get(lsym(s))
+        } else {
+          load(file.path(cache.dir, paste(lsym(s),"rda",sep=".")))
+          get(lsym(s))
+        }
+      } else {
+        return(message("assignment not possible with 'DDB' databases"))
+      }}
+    makeActiveBinding(lsym(s), f, as.environment(envir))
+  } else
+    if(mem.cache) {
+      envir <- as.environment(envir)
+      delayedAssign(lsym(s), { 
+        assign(lsym(s), do.call("GETSymbols", list(rsym(s), auto.assign=FALSE, 
+                                                   src=gsrc, ...)), env=envir)
+        get(lsym(s), env=envir) },
+                    assign.env=envir)
+    } else { # no cache
+      f <- function(value) {
+        if(missing(value)) {
+          assign(lsym(s), getSymbols(rsym(s), src=gsrc, auto.assign=FALSE, ...))
+          tmp <- get(lsym(s))
+          rm(list=lsym(s))
+          tmp
+        } else return(message("assignment not possible with 'DDB' databases"))
+      }
+      makeActiveBinding(lsym(s), f, as.environment(envir))
+    }
+}
+
+
+create.binding2 <- function(s, lsym, rsym, gsrc, 
+                            mem.cache=TRUE,
+                            file.cache=!mem.cache, 
+                            cache.dir=tempdir(),
+                            envir, ...) {
+  #if((mem.cache + file.cache) != 1) stop("only mem or file caching supported")
+  # allow both to be set to FALSE, to force no caching
+  if(missing(rsym) || !is.function(rsym)) {
+    rsym <- function(x) x
+  }
+  if(missing(lsym) || !is.function(lsym)) {
+    lsym <- function(x) x
+  }
+  
+  if(file.cache) {
+    f <- function(value) {
+      if(missing(value)) {
+        if(!file.exists(file.path(cache.dir, paste(s,"rda",sep=".")))) {
+          assign(lsym(s), getSymbols(rsym(s), src=gsrc, auto.assign=FALSE, ...))
+          save(list=lsym(s), file=file.path(cache.dir, paste(s,"rda",sep=".")))
+          get(lsym(s))
+        } else {
+          load(file.path(cache.dir, paste(lsym(s),"rda",sep=".")))
+          get(lsym(s))
+        }
+      } else {
+        return(message("assignment not possible with 'DDB' databases"))
+      }}
+    makeActiveBinding(lsym(s), f, as.environment(envir))
+  } else
+    if(mem.cache) {
+      envir <- as.environment(envir)
+      delayedAssign(lsym(s), { 
+        assign(lsym(s), do.call("GETSymbols", list(rsym(s), auto.assign=FALSE, 
+                                                   src=gsrc, ...)), env=envir)
+        get(lsym(s), env=envir) },
+                    assign.env=envir)
+    } else { # no cache
+      f <- function(value) {
+        if(missing(value)) {
+          assign(lsym(s), getSymbols(rsym(s), src=gsrc, auto.assign=FALSE, ...))
+          tmp <- get(lsym(s))
+          rm(list=lsym(s))
+          tmp
+        } else return(message("assignment not possible with 'DDB' databases"))
+      }
+      makeActiveBinding(lsym(s), f, as.environment(envir))
+    }
+}
+
+
+##### Global Code #####
+
+start.date = "2005-01-01"
+end.date = "2007-01-01"
+
+# Prepares caching database with custom from and to dates.
+DB <- DDB_Yahoo2(from=start.date, to=end.date, verbose=TRUE)
+attachSymbols2(DB)
+
+# Prepares pairs to use for both methods.
 library(utils)
 library(quantmod)
 library(tseries)
@@ -7,10 +152,8 @@ stocklist=as.character(read.csv(nasdaqstocks, header=FALSE)[,2])
 pairs=combn(stocklist,2)
 numpairs=ncol(pairs)
 
-attachSymbols()
+####### Difference Method ########
 
-start.date = "2010-04-01"
-end.date = "2013-04-01"
 
 profits=rep(NA,numpairs)
 correl=rep(NA,numpairs)
@@ -19,21 +162,16 @@ for (j in 1:numpairs){
   
   stock1=pairs[1,j]
   stock2=pairs[2,j]
-  
-  #print(paste("s1:", stock1, "s2:", stock2))
-  
+    
   all1 = get(stock1)
-  #print(time(all1[1]))
   unmerged.p1=Ad(all1[which(time(all1) >= start.date & time(all1) <= end.date)])
   all2 = get(stock2)
-  #print(time(all2[1]))
   unmerged.p2=Ad(all2[which(time(all2) >= start.date & time(all2) <= end.date)])
-  merged = merge(unmerged.p1, unmerged.p2)
+  merged = merge(unmerged.p1, unmerged.p2, all=FALSE)
   a1 = merged[,1]
   a2 = merged[,2]
-  
-  #print(paste("loaded s1:", stock1, "s2:", stock2))
-  
+  print(paste(stock2, time(a2[1])))
+      
   p1 = as.numeric(a1)
   p2 = as.numeric(a2)
   correl[j]=cor(p1,p2)
@@ -107,11 +245,9 @@ pprofits.high=pprofits.order[4901:4950]
 plot(correl.high,pprofits.high)
 mean(pprofits.high)
 
+stop("done")
 
 ###### Ratio Method #######
-library(utils)
-library(quantmod)
-library(tseries)
 
 profits2=rep(NA,numpairs)
 correl2=rep(NA,numpairs)
@@ -124,12 +260,10 @@ for (j in 1:numpairs){
   #print(paste("s1:", stock1, "s2:", stock2))
   
   all1 = get(stock1)
-  #print(time(all1[1]))
   unmerged.p1=Ad(all1[which(time(all1) >= start.date & time(all1) <= end.date)])
   all2 = get(stock2)
-  #print(time(all2[1]))
   unmerged.p2=Ad(all2[which(time(all2) >= start.date & time(all2) <= end.date)])
-  merged = merge(unmerged.p1, unmerged.p2)
+  merged = merge(unmerged.p1, unmerged.p2, all=FALSE)
   a1 = merged[,1]
   a2 = merged[,2]
   
