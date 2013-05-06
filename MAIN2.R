@@ -142,7 +142,7 @@ date.2="2000-03-01"
 date.3="2002-10-01"
 date.4="2005-05-01"
 
-# test dates
+# 2008-2009 recession
 #date.1="2007-08-01"
 #date.2="2008-03-01"
 #date.3="2009-10-01"
@@ -160,6 +160,11 @@ nasdaqstocks=file.choose()
 stocklist=as.character(read.csv(nasdaqstocks, header=FALSE)[,2])
 pairs=combn(stocklist,2)
 numpairs=ncol(pairs)
+
+# check stocks' existence
+for (stock in stocklist) {
+  get(stock)
+}
 
 ####### Difference Method ########
 
