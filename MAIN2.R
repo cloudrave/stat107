@@ -148,17 +148,25 @@ date.2="2008-03-01"
 date.3="2009-10-01"
 date.4="2010-05-01"
 
-export.name = "2008-2009.csv"
+# Set to FALSE to force database not to refresh.
+# This is good for temporary efficiency, but must be set
+# to TRUE if dates or selected stocks have been changed
+# since last run!!
+refresh.cache = FALSE
 
 # Prepares caching database with custom from and to dates.
-DB <- DDB_Yahoo2(from=date.1, to=date.4, verbose=TRUE)
-attachSymbols2(DB)
+if (refresh.cache) {
+  DB <- DDB_Yahoo2(from=date.1, to=date.4, verbose=TRUE)
+  attachSymbols2(DB)
+}
 
 # Prepares pairs to use for both methods.
 library(utils)
 library(quantmod)
 library(tseries)
-nasdaqstocks=file.choose()
+if(refresh.cache) {
+  nasdaqstocks=file.choose()
+}
 stocklist=as.character(read.csv(nasdaqstocks, header=FALSE)[,2])
 pairs=combn(stocklist,2)
 numpairs=ncol(pairs)
@@ -262,7 +270,7 @@ mean(profits.high)
 #plot(correl.high,pprofits.high)
 #mean(pprofits.high)
 
-trade.pairs = function(stock1, stock2, date.1, date.2) {
+trade.pairs = function(stock1, stock2, date.1, date.2, return.val="profit") {
   all1 = get(stock1)
   unmerged.p1=Ad(all1[which(time(all1) >= date.1 & time(all1) <= date.2)])
   all2 = get(stock2)
@@ -309,24 +317,43 @@ trade.pairs = function(stock1, stock2, date.1, date.2) {
       current="neither"
     }
   }
-  return(profit)
+  
+  if (return.val == "numtrades")
+    return(numtrades)
+  else if (return.val == "profit")
+    return(profit)
+  else
+    stop("MUST SPECIFY A PROPER RETURN TYPE!")
 }
 
 foo=o[num.top.ten.percent:numpairs]
 top.pairs=pairs[,foo]
 num.top.pairs=ncol(top.pairs)
 
-top.profits.1=top.profits.2=top.profits.3=rep(NA,num.top.pairs)
+top.profits.1=top.profits.2=top.profits.3=
+  num.trades.1=num.trades.2=num.trades.3=rep(NA,num.top.pairs)
 for (j in 1:num.top.pairs){
 
-  top.profits.1[j] = trade.pairs(top.pairs[1,j], top.pairs[2,j], date.1, date.2)
+  s1 = top.pairs[1,j]
+  s2 = top.pairs[2,j]
   
-  top.profits.2[j] = trade.pairs(top.pairs[1,j], top.pairs[2,j], date.2, date.3)
+  top.profits.1[j] = trade.pairs(s1, s2, date.1, date.2, "profit")
+  num.trades.1[j] = trade.pairs(s1, s2, date.1, date.2, "numtrades")
+  
+  top.profits.2[j] = trade.pairs(s1, s2, date.2, date.3, "profit")
+  num.trades.2[j] = trade.pairs(s1, s2, date.2, date.3, "numtrades")
 
-  top.profits.3[j] = trade.pairs(top.pairs[1,j], top.pairs[2,j], date.3, date.4)
+  top.profits.3[j] = trade.pairs(s1, s2, date.3, date.4, "profit")
+  num.trades.3[j] = trade.pairs(s1, s2, date.3, date.4, "numtrades")
   
 }
 
 top.profits = cbind(top.profits.1, top.profits.2, top.profits.3)
+num.trades = cbind(num.trades.1, num.trades.2, num.trades.3)
 
-write.csv(x=top.profits, file=paste("exports/", export.name, sep=""))
+export.name = paste(substr(date.2,1,4), "-", substr(date.3,1,4), ".csv", sep="")
+
+write.csv(x=top.profits, file=paste("exports/profits_", export.name, sep=""))
+write.csv(x=num.trades, file=paste("exports/numtrades_", export.name, sep=""))
+
+
