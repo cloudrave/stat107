@@ -229,6 +229,8 @@ summary(fit2)
 plot(coint,profits, main= "Stock Cointegration vs. Total Profits (Difference Method)", xlab= "Cointegration (Taken from Dickey Fuller test statistic)", ylab="Profits")
 abline(lm(profits~coint), col="red")
 
+print("Difference Method")
+
 o=order(coint)
 coint.order=coint[o]
 profits.order=profits[o]
@@ -236,7 +238,7 @@ num.top.ten.percent = round(0.99 * numpairs) + 1
 coint.high=coint.order[num.top.ten.percent:numpairs]
 profits.high=profits.order[num.top.ten.percent:numpairs]
 plot(coint.high,profits.high)
-mean(profits.high)
+print(paste("Cointegration Profits:",mean(profits.high)))
 
 p=order(correl)
 correl.order=correl[p]
@@ -244,9 +246,11 @@ pprofits.order=profits[p]
 correl.high=correl.order[num.top.ten.percent:numpairs]
 pprofits.high=pprofits.order[num.top.ten.percent:numpairs]
 plot(correl.high,pprofits.high)
-mean(pprofits.high)
+print(paste("Correlation Profits:",mean(pprofits.high)))
 
-#stop("done")
+# Compare means
+print(t.test(pprofits.high, profits.high, alternative="less"))
+
 
 ###### Ratio Method #######
 
@@ -318,6 +322,7 @@ for (j in 1:numpairs){
   profits2[j]=profit2
 }
 
+print("Ratio Method")
 o2=order(coint2)
 coint.order2=coint2[o2]
 profits.order2=profits2[o]
@@ -325,7 +330,8 @@ num.top.ten.percent = round(0.99 * numpairs) + 1
 coint.high2=coint.order[num.top.ten.percent:numpairs]
 profits.high2=profits.order[num.top.ten.percent:numpairs]
 plot(coint.high2,profits.high2)
-mean(profits.high2)
+print(paste("Cointegration Profits:",mean(profits.high2)))
+
 
 p2=order(correl2)
 correl.order2=correl2[p]
@@ -334,6 +340,10 @@ correl.high=correl.order[num.top.ten.percent:numpairs]
 pprofits.high=pprofits.order[num.top.ten.percent:numpairs]
 plot(correl.high2,pprofits.high2)
 mean(pprofits.high2)
+print(paste("Correlation Profits:",mean(pprofits.high2)))
+
+# Compare means
+print(t.test(pprofits.high2, profits.high2, alternative="less"))
 
 fit3=lm(profits2~correl2)
 summary(fit3)
