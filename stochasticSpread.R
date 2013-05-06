@@ -23,14 +23,19 @@ for (j in 1:numpairs){
   #print(paste("s1:", stock1, "s2:", stock2))
   
   all1 = get(stock1)
-  s1=all1[which(time(all1) >= start.date & time(all1) <= end.date)]
+  #print(time(all1[1]))
+  unmerged.p1=Ad(all1[which(time(all1) >= start.date & time(all1) <= end.date)])
   all2 = get(stock2)
-  s2=all2[which(time(all2) >= start.date & time(all2) <= end.date)]
+  #print(time(all2[1]))
+  unmerged.p2=Ad(all2[which(time(all2) >= start.date & time(all2) <= end.date)])
+  merged = merge(unmerged.p1, unmerged.p2)
+  a1 = merged[,1]
+  a2 = merged[,2]
   
   #print(paste("loaded s1:", stock1, "s2:", stock2))
   
-  p1 = as.numeric(Ad(s1))
-  p2 = as.numeric(Ad(s2))
+  p1 = as.numeric(a1)
+  p2 = as.numeric(a2)
   correl[j]=cor(p1,p2)
   p1.norm=(p1-runMean(p1,n=14))/runSD(p1,14)
   p2.norm=(p2-runMean(p2,n=14))/runSD(p2,14)
@@ -119,15 +124,20 @@ for (j in 1:numpairs){
   #print(paste("s1:", stock1, "s2:", stock2))
   
   all1 = get(stock1)
-  s1=all1[which(time(all1) >= start.date & time(all1) <= end.date)]
+  #print(time(all1[1]))
+  unmerged.p1=Ad(all1[which(time(all1) >= start.date & time(all1) <= end.date)])
   all2 = get(stock2)
-  s2=all2[which(time(all2) >= start.date & time(all2) <= end.date)]
+  #print(time(all2[1]))
+  unmerged.p2=Ad(all2[which(time(all2) >= start.date & time(all2) <= end.date)])
+  merged = merge(unmerged.p1, unmerged.p2)
+  a1 = merged[,1]
+  a2 = merged[,2]
   
   #print(paste("loaded s1:", stock1, "s2:", stock2))
   
   
-  p1 = as.numeric(Ad(s1))
-  p2 = as.numeric(Ad(s2))
+  p1 = as.numeric(a1)
+  p2 = as.numeric(a2)
   rat=p1/p2
   nrat=(rat-runMean(rat,14))/runSD(rat,14)
   
