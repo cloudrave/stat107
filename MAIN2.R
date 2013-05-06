@@ -143,7 +143,7 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 refresh.cache = TRUE
 
 # Can be "2000" or "2008" or ...
-my.time.choice = "2000"
+my.time.choice = "long term"
 
 refresh.cache = TRUE
 if (exists("time.choice")) {
@@ -170,12 +170,21 @@ if (time.choice == "2000") {
   date.3="2009-10-01"
   date.4="2010-05-01"
 } else if (time.choice == "early 2000s") {
+  stop("Don't use these dates.")
   # based on https://www.google.com/finance?q=INDEXCBOE%3AVIX&sq=vix&sp=8&ei=peqHUZCGGKiylgPFuQE
   date.1="1986-05-01"
   date.2="1995-05-01"
   date.3="2004-05-01"
   date.4="2013-05-01"
-}else {
+} else if (time.choice == "long term") {
+  # Note: Only the first time period should be used!
+  #       This is to get a general perspective on
+  #       pairs trading.
+  date.1="2000-01-01"
+  date.2="2012-12-31"
+  date.3="2013-01-01"
+  date.4="2013-03-01"
+} else {
   stop("YOU MUST SPECIFY A PROPER TIME CHOICE!")
 }
 
@@ -400,4 +409,16 @@ export.name = paste(substr(date.2,1,4), "-", substr(date.3,1,4), ".csv", sep="")
 write.csv(x=top.profits, file=paste("exports/profits_", export.name, sep=""))
 write.csv(x=num.trades, file=paste("exports/numtrades_", export.name, sep=""))
 
+crimson = "#c90016"
+my.hist = function(vector) {
+  hist(vector, breaks=6, col=crimson)
+}
+
+my.hist(top.profits.1)
+my.hist(top.profits.2)
+my.hist(top.profits.3)
+
+my.hist(num.trades.1)
+my.hist(num.trades.2)
+my.hist(num.trades.3)
 

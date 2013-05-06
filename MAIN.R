@@ -138,7 +138,7 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 
 ##### Global Code #####
 
-start.date = "2010-04-01"
+start.date = "2005-04-01"
 end.date =   "2013-04-01"
 
 # Prepares caching database with custom from and to dates.
