@@ -136,10 +136,10 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 
 ##### Global Code #####
 
-date.1="2006-06-01"
-date.2="2007-12-01"
-date.3="2009-06-01"
-date.4="2010-12-01"
+date.1="1997-08-01"
+date.2="2000-03-01"
+date.3="2002-10-01"
+date.4="2005-05-01"
 
 # Prepares caching database with custom from and to dates.
 DB <- DDB_Yahoo2(from=date.1, to=date.4, verbose=TRUE)
