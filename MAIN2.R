@@ -255,16 +255,7 @@ mean(profits.high)
 #plot(correl.high,pprofits.high)
 #mean(pprofits.high)
 
-foo=o[num.top.ten.percent:numpairs]
-top.pairs=pairs[,foo]
-num.top.pairs=ncol(top.pairs)
-
-top.profits.1=top.profits.2=top.profits.3=rep(NA,num.top.pairs)
-for (j in 1:num.top.pairs){
-  
-  stock1=top.pairs[1,j]
-  stock2=top.pairs[2,j]
-  
+trade.pairs = function(stock1, stock2, date.1, date.2) {
   all1 = get(stock1)
   unmerged.p1=Ad(all1[which(time(all1) >= date.1 & time(all1) <= date.2)])
   all2 = get(stock2)
@@ -311,102 +302,20 @@ for (j in 1:num.top.pairs){
       current="neither"
     }
   }
-  top.profits.1[j]=profit
+  return(profit)
+}
+
+foo=o[num.top.ten.percent:numpairs]
+top.pairs=pairs[,foo]
+num.top.pairs=ncol(top.pairs)
+
+top.profits.1=top.profits.2=top.profits.3=rep(NA,num.top.pairs)
+for (j in 1:num.top.pairs){
+
+  top.profits.1[j] = trade.pairs(top.pairs[1,j], top.pairs[2,j], date.1, date.2)
   
-  all1b = get(stock1)
-  unmerged.p1b=Ad(all1b[which(time(all1b) >= date.2 & time(all1b) <= date.3)])
-  all2b = get(stock2)
-  unmerged.p2b=Ad(all2b[which(time(all2b) >= date.2 & time(all2b) <= date.3)])
-  mergedb = merge(unmerged.p1b, unmerged.p2b, all=FALSE)
-  a1b = mergedb[,1]
-  a2b = mergedb[,2]
-  #print(paste(stock2, time(a2b[1])))
-  
-  p1b = as.numeric(a1b)
-  p2b = as.numeric(a2b)
-  p1.normb=(p1b-runMean(p1b,n=14))/runSD(p1b,14)
-  p2.normb=(p2b-runMean(p2b,n=14))/runSD(p2b,14)
-  ndiffb=p1.normb-p2.normb
-  
-  numdaysb=length(ndiffb)
-  p1.tradedb=p2.tradedb=0
-  currentb="neitherb"
-  profitb=0
-  maxprofitb=minprofitb=numtradesb=winnersb=0
-  
-  for(i in 14:numdaysb){
-    
-    if(ndiffb[i]>2 & currentb=="neitherb"){
-      p1.tradedb=(-10000/p1b[i])
-      p2.tradedb=(10000/p2b[i])
-      currentb="p2b"
-      numtradesb=numtradesb+1
-    }
-    if(ndiffb[i]<(-2) & currentb=="neitherb"){
-      p1.tradedb=(10000/p1b[i])
-      p2.tradedb=(-10000/p2b[i])
-      currentb="p1b"
-      numtradesb=numtradesb+1
-    }
-    if((ndiffb[i]<0 & currentb=="p2b") | (ndiffb[i]>0 & currentb=="p1b")){
-      profit.tempb=p1.tradedb*p1b[i]+p2.tradedb*p2b[i]
-      profitb=profitb+profit.tempb
-      winnersb=winnersb+(profit.tempb>0)
-      maxprofitb=max(maxprofitb,profit.tempb)
-      minprofitb=min(minprofitb,profit.tempb)
-      p1.tradedb=0
-      p2.tradedb=0
-      currentb="neitherb"
-    }
-  }
-  top.profits.2[j]=profitb
-  
-  all1c = get(stock1)
-  unmerged.p1c=Ad(all1c[which(time(all1c) >= date.3 & time(all1c) <= date.4)])
-  all2c = get(stock2)
-  unmerged.p2c=Ad(all2c[which(time(all2c) >= date.3 & time(all2c) <= date.4)])
-  mergedc = merge(unmerged.p1c, unmerged.p2c, all=FALSE)
-  a1c = mergedc[,1]
-  a2c = mergedc[,2]
-  #print(paste(stock2, time(a2[1])))
-  
-  p1c = as.numeric(a1c)
-  p2c = as.numeric(a2c)
-  p1.normc=(p1c-runMean(p1c,n=14))/runSD(p1c,14)
-  p2.normc=(p2c-runMean(p2c,n=14))/runSD(p2c,14)
-  ndiffc=p1.normc-p2.normc
-  
-  numdaysc=length(ndiffc)
-  p1.tradedc=p2.tradedc=0
-  currentc="neitherc"
-  profitc=0
-  maxprofitc=minprofitc=numtradesc=winnersc=0
-  
-  for(i in 14:numdaysc){
-    
-    if(ndiffc[i]>2 & currentc=="neitherc"){
-      p1.tradedc=(-10000/p1c[i])
-      p2.tradedc=(10000/p2c[i])
-      currentc="p2c"
-      numtradesc=numtradesc+1
-    }
-    if(ndiffc[i]<(-2) & currentc=="neitherc"){
-      p1.tradedc=(10000/p1c[i])
-      p2.tradedc=(-10000/p2c[i])
-      currentc="p1c"
-      numtradesc=numtradesc+1
-    }
-    if((ndiffc[i]<0 & currentc=="p2c") | (ndiffc[i]>0 & currentc=="p1c")){
-      profit.tempc=p1.tradedc*p1c[i]+p2.tradedc*p2c[i]
-      profitc=profitc+profit.tempc
-      winnersc=winnersc+(profit.tempc>0)
-      maxprofitc=max(maxprofitc,profit.tempc)
-      minprofitc=min(minprofitc,profit.tempc)
-      p1.tradedc=0
-      p2.tradedc=0
-      currentc="neitherc"
-    }
-  }
-  top.profits.3[j]=profitc
+  top.profits.2[j] = trade.pairs(top.pairs[1,j], top.pairs[2,j], date.2, date.3)
+
+  top.profits.3[j] = trade.pairs(top.pairs[1,j], top.pairs[2,j], date.3, date.4)
   
 }
