@@ -136,23 +136,42 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 
 ##### Global Code #####
 
-# 2000-2002 recession
-#date.1="1997-08-01"
-#date.2="2000-03-01"
-#date.3="2002-10-01"
-#date.4="2005-05-01"
-
-# 2008-2009 recession
-date.1="2007-08-01"
-date.2="2008-03-01"
-date.3="2009-10-01"
-date.4="2010-05-01"
-
 # Set to FALSE to force database not to refresh.
 # This is good for temporary efficiency, but must be set
 # to TRUE if dates or selected stocks have been changed
 # since last run!!
-refresh.cache = FALSE
+refresh.cache = TRUE
+
+# Can be "2000" or "2008"
+my.time.choice = "2008"
+
+refresh.cache = TRUE
+if (exists("time.choice")) {
+  if (time.choice == my.time.choice) {
+    # time is unmodified
+    refresh.cache = FALSE
+  } else {
+    print("Time has been modified... Clearing database.")
+  }
+}
+
+time.choice = my.time.choice
+
+if (time.choice == "2000") {
+  # 2000-2002 recession
+  date.1="1997-08-01"
+  date.2="2000-03-01"
+  date.3="2002-10-01"
+  date.4="2005-05-01"
+} else if (time.choice == "2008") {
+  # 2008-2009 recession
+  date.1="2007-08-01"
+  date.2="2008-03-01"
+  date.3="2009-10-01"
+  date.4="2010-05-01"
+} else {
+  stop("YOU MUST SPECIFY A PROPER TIME CHOICE!")
+}
 
 # Prepares caching database with custom from and to dates.
 if (refresh.cache) {
