@@ -142,8 +142,8 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 # since last run!!
 refresh.cache = TRUE
 
-# Can be "2000" or "2008"
-my.time.choice = "2008"
+# Can be "2000" or "2008" or ...
+my.time.choice = "2000"
 
 refresh.cache = TRUE
 if (exists("time.choice")) {
@@ -169,14 +169,24 @@ if (time.choice == "2000") {
   date.2="2008-03-01"
   date.3="2009-10-01"
   date.4="2010-05-01"
-} else {
+} else if (time.choice == "early 2000s") {
+  # based on https://www.google.com/finance?q=INDEXCBOE%3AVIX&sq=vix&sp=8&ei=peqHUZCGGKiylgPFuQE
+  date.1="1986-05-01"
+  date.2="1995-05-01"
+  date.3="2004-05-01"
+  date.4="2013-05-01"
+}else {
   stop("YOU MUST SPECIFY A PROPER TIME CHOICE!")
+}
+
+clear.cache = function() {
+  DB <- DDB_Yahoo2(from=date.1, to=date.4, verbose=TRUE)
+  attachSymbols2(DB)
 }
 
 # Prepares caching database with custom from and to dates.
 if (refresh.cache) {
-  DB <- DDB_Yahoo2(from=date.1, to=date.4, verbose=TRUE)
-  attachSymbols2(DB)
+  clear.cache()
 }
 
 # Prepares pairs to use for both methods.
@@ -187,13 +197,28 @@ if(refresh.cache) {
   nasdaqstocks=file.choose()
 }
 stocklist=as.character(read.csv(nasdaqstocks, header=FALSE)[,2])
-pairs=combn(stocklist,2)
-numpairs=ncol(pairs)
 
-# check stocks' existence and load them into cache
-for (stock in stocklist) {
-  get(stock)
+
+# Check stocks' existence and load them into cache.
+# Also populate list of stocks with full data.
+valid.stocks = rep(NA, length(stocklist))
+valid.count = 0
+for (i in 1:length(stocklist)) {
+  stock = stocklist[i]
+  print(paste("checking", stock))
+  s = get(stock)
+  if (time(s[1]) == date.1) {
+    valid.count = valid.count + 1
+    valid.stocks[valid.count] = stock
+  }
 }
+
+# remove NAs
+valid.stocks = valid.stocks[!is.na(valid.stocks)]
+print(paste("Number of valid stocks:", length(valid.stocks)))
+
+pairs=combn(valid.stocks,2)
+numpairs=ncol(pairs)
 
 ####### Difference Method ########
 
