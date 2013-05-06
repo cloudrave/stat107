@@ -136,8 +136,8 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 
 ##### Global Code #####
 
-start.date = "2005-01-01"
-end.date = "2007-01-01"
+start.date = "2010-04-01"
+end.date =   "2013-04-01"
 
 # Prepares caching database with custom from and to dates.
 DB <- DDB_Yahoo2(from=start.date, to=end.date, verbose=TRUE)
@@ -232,16 +232,17 @@ abline(lm(profits~coint), col="red")
 o=order(coint)
 coint.order=coint[o]
 profits.order=profits[o]
-coint.high=coint.order[4901:4950]
-profits.high=profits.order[4901:4950]
+num.top.ten.percent = round(0.99 * numpairs) + 1
+coint.high=coint.order[num.top.ten.percent:numpairs]
+profits.high=profits.order[num.top.ten.percent:numpairs]
 plot(coint.high,profits.high)
 mean(profits.high)
 
 p=order(correl)
 correl.order=correl[p]
 pprofits.order=profits[p]
-correl.high=correl.order[4901:4950]
-pprofits.high=pprofits.order[4901:4950]
+correl.high=correl.order[num.top.ten.percent:numpairs]
+pprofits.high=pprofits.order[num.top.ten.percent:numpairs]
 plot(correl.high,pprofits.high)
 mean(pprofits.high)
 
