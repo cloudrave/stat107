@@ -136,10 +136,17 @@ create.binding2 <- function(s, lsym, rsym, gsrc,
 
 ##### Global Code #####
 
+# 2000-2002 recession
 date.1="1997-08-01"
 date.2="2000-03-01"
 date.3="2002-10-01"
 date.4="2005-05-01"
+
+# test dates
+#date.1="2007-08-01"
+#date.2="2008-03-01"
+#date.3="2009-10-01"
+#date.4="2010-05-01"
 
 # Prepares caching database with custom from and to dates.
 DB <- DDB_Yahoo2(from=date.1, to=date.4, verbose=TRUE)
@@ -172,7 +179,7 @@ for (j in 1:numpairs){
   merged = merge(unmerged.p1, unmerged.p2, all=FALSE)
   a1 = merged[,1]
   a2 = merged[,2]
-  print(paste(stock2, time(a2[1])))
+  #print(paste(stock2, time(a2[1])))
   
   p1 = as.numeric(a1)
   p2 = as.numeric(a2)
@@ -265,7 +272,7 @@ for (j in 1:num.top.pairs){
   merged = merge(unmerged.p1, unmerged.p2, all=FALSE)
   a1 = merged[,1]
   a2 = merged[,2]
-  print(paste(stock2, time(a2[1])))
+  #print(paste(stock2, time(a2[1])))
   
   p1 = as.numeric(a1)
   p2 = as.numeric(a2)
@@ -313,7 +320,7 @@ for (j in 1:num.top.pairs){
   mergedb = merge(unmerged.p1b, unmerged.p2b, all=FALSE)
   a1b = mergedb[,1]
   a2b = mergedb[,2]
-  print(paste(stock2, time(a2b[1])))
+  #print(paste(stock2, time(a2b[1])))
   
   p1b = as.numeric(a1b)
   p2b = as.numeric(a2b)
@@ -361,7 +368,7 @@ for (j in 1:num.top.pairs){
   mergedc = merge(unmerged.p1c, unmerged.p2c, all=FALSE)
   a1c = mergedc[,1]
   a2c = mergedc[,2]
-  print(paste(stock2, time(a2[1])))
+  #print(paste(stock2, time(a2[1])))
   
   p1c = as.numeric(a1c)
   p2c = as.numeric(a2c)
@@ -403,107 +410,3 @@ for (j in 1:num.top.pairs){
   top.profits.3[j]=profitc
   
 }
-
-stop("done")
-
-###### Ratio Method #######
-
-profits2=rep(NA,numpairs)
-correl2=rep(NA,numpairs)
-coint2=rep(NA,numpairs)
-for (j in 1:numpairs){
-  
-  stock1=pairs[1,j]
-  stock2=pairs[2,j]
-  
-  #print(paste("s1:", stock1, "s2:", stock2))
-  
-  all1 = get(stock1)
-  unmerged.p1=Ad(all1[which(time(all1) >= start.date & time(all1) <= end.date)])
-  all2 = get(stock2)
-  unmerged.p2=Ad(all2[which(time(all2) >= start.date & time(all2) <= end.date)])
-  merged = merge(unmerged.p1, unmerged.p2, all=FALSE)
-  a1 = merged[,1]
-  a2 = merged[,2]
-  
-  #print(paste("loaded s1:", stock1, "s2:", stock2))
-  
-  
-  p1 = as.numeric(a1)
-  p2 = as.numeric(a2)
-  rat=p1/p2
-  nrat=(rat-runMean(rat,14))/runSD(rat,14)
-  
-  numdays2=length(nrat)
-  p1.traded2=p2.traded2=0
-  current2="neither"
-  profit2=0
-  maxprofit2=minprofit2=numtrades2=winners2=0
-  
-  correl2[j]=cor(p1,p2)
-  
-  fit=lm(p1~p2+0)
-  beta=coef(fit)[1]
-  spread=p1-beta*p2
-  spread.test= adf.test(spread, alternative="stationary", k=0)
-  coint2[j]=1-spread.test$p.value
-  
-  for(i in 14:numdays2){
-    
-    if(nrat[i]>2 & current2=="neither"){
-      p1.traded2=(-10000/p1[i])
-      p2.traded2=(10000/p2[i])
-      current2="p2"
-      numtrades2=numtrades2+1
-    }
-    if(nrat[i]<(-2) & current2=="neither"){
-      p1.traded2=(10000/p1[i])
-      p2.traded2=(-10000/p2[i])
-      current2="p1"
-      numtrades2=numtrades2+1
-    }
-    if((nrat[i]<0 & current2=="p2") | (nrat[i]>0 & current2=="p1")){
-      profit.temp2=p1.traded2*p1[i]+p2.traded2*p2[i]
-      profit2=profit2+profit.temp2
-      winners2=winners2+(profit.temp2>0)
-      maxprofit2=max(maxprofit2,profit.temp2)
-      minprofit2=min(minprofit2,profit.temp2)
-      p1.traded2=0
-      p2.traded2=0
-      current2="neither"
-    }
-  }
-  profits2[j]=profit2
-}
-
-o2=order(coint2)
-coint.order2=coint2[o2]
-profits.order2=profits2[o]
-coint.high2=coint.order2[4901:4950]
-profits.high2=profits.order2[4901:4950]
-plot(coint.high2,profits.high2)
-mean(profits.high2)
-
-p2=order(correl2)
-correl.order2=correl2[p]
-pprofits.order2=profits2[p]
-correl.high2=correl.order2[4901:4950]
-pprofits.high2=pprofits.order2[4901:4950]
-plot(correl.high2,pprofits.high2)
-mean(pprofits.high2)
-
-fit3=lm(profits2~correl2)
-summary(fit3)
-plot(correl2,profits2, main= "Stock Correlation vs. Total Profits (Ratio Method)", xlab= "Correlation", ylab="Profits")
-abline(lm(profits2~correl2), col="blue")
-
-fit4=lm(profits2~coint2)
-summary(fit4)
-plot(coint2,profits2, main= "Stock Cointegration vs. Total Profits (Ratio Method)", xlab= "Cointegration (Taken from Dickey Fuller test statistic)", ylab="Profits")
-abline(lm(profits2~coint2), col="red")
-
-difference.method=c(mean(pprofits.high),mean(profits.high))
-ratio.method=c(mean(pprofits.high2),mean(profits.high2))
-results=cbind(difference.method,ratio.method)
-rownames(results)=c("Correlation", "Cointegration")
-colnames(results)= c("Brazilian Method", "Pairslog Method")
